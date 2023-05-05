@@ -5,5 +5,4 @@ An R Shiny app to predict data from submaximal exercise test, taking Vyntus XP r
 Current version at https://juenhint.shinyapps.io/exercisePredict/    
 Go easy on the usage, it's hosted on free account :)    
     
-2023 Jukka Hintikka    
-MIT license
+2023 Jukka Hintikka MIT license
