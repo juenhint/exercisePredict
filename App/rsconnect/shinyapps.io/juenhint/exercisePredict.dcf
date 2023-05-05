@@ -1,0 +1,11 @@
+name: exercisePredict
+title:
+username:
+account: juenhint
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 9037767
+bundleId: 7178877
+url: https://juenhint.shinyapps.io/exercisePredict/
+when: 1683298403.42038
+lastSyncTime: 1683298403.42038
