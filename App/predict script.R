@@ -1,12 +1,15 @@
 runScript <- function(input)  {
   #Luetaan tiedosto ja tarvittaessa muutetaan se .txt-muotoon
-  file <- getfile(input)
+  filels <- getfile(input)
 
   #Luodaan taulukot metadatalle ja testidatalle, kts. apufunktiot
-  metadata <- createMetadata(file)
-  test.data <- createData(file)
+  metadata <- createMetadata(filels)
+  test.data <- createData(filels)
   test.data.reduced <- reduceData(test.data)
-  
+  if (!is.na(input$manualhr)) {
+    metadata$maxHR <- input$manualhr 
+  }
+  else  {metadata$maxHR <- NULL}
   # Luodaan lineaarinen regression R:n lm-luokkaa käyttäen ja plotataan tulokset
   linmod <- lm(Load ~ HR, data=test.data.reduced)
   summ <- summary(linmod)
@@ -35,17 +38,34 @@ runExample <- function(file = "example.txt") {
 
 #PALAUTTAA TIEDOSTON
 getfile <- function(input) {
+  require(tools,readxl)
   file <- input$filinp$datapath
-  if (file_ext(file) != "txt") {
+  sp <- input$sep
+  qt <- input$quote
+  if (file_ext(file) == "xlsx") {
+    newfile <- paste0(substring(file,1,nchar(file)-4),"txt")
+    temp <- read_excel(file,col_names = FALSE,)
+    write.table(x = temp, file=newfile, 
+                sep="\t", na="", quote = FALSE,
+                col.names=FALSE, row.names = FALSE)
+    file <- newfile
+  }
+  else if (file_ext(file) != "txt") {
     newfile <- paste0(substring(file,1,nchar(file)-3),"txt")
     if (!file.exists(newfile)){
       file.copy(file, newfile,overwrite = TRUE)
     }
-    file.remove(file)
     file <- newfile
-    rm(newfile)
   }
-  return(file)
+  raw <- read.delim(file, header = FALSE, 
+                    fill = TRUE,sep = sp,quote = qt)
+  data <- read.delim(file, header = TRUE, 
+                     skip = which(raw[1] == "Time")-1,
+                     sep = sp, quote = qt)
+  filels <- list()
+  filels$raw <- raw
+  filels$data <- data
+  return(filels)
 }
 
 #Laskee max- ja submax-arvot regressioyhtälöstä ja rasitusdatasta
@@ -64,7 +84,8 @@ calcParameters <- function (summ, metadata, test.data.reduced) {
   #Luodaan lista parametreille
   fitness.res <- list()
   #Lasketaan iänmukainen maksimi-HR, maksimiteho ja VO2max
-  fitness.res["maxHR"] <- 220 - metadata$Age
+  if (is.null(metadata$maxHR)) {fitness.res["maxHR"] <- 220 - metadata$Age}
+  else {fitness.res["maxHR"] <- metadata$maxHR}
   fitness.res["Powermax"] <- predictor(fitness.res$maxHR)
   fitness.res["VO2max"] <- vo2max_calc(fitness.res$Powermax)
   #Etsitään stage joka on lähimpänä ~60% maksimitehoa
@@ -78,9 +99,8 @@ calcParameters <- function (summ, metadata, test.data.reduced) {
 }
 
 #Tämä funktio lukee tekstitiedostosta metadatat
-createMetadata <- function (file) {
-  raw <- read.delim(file, header = FALSE, 
-                    fill = TRUE,)
+createMetadata <- function (filels) {
+  raw <- filels$raw
   metadata <- list()
   for (v in c("Last Name", "First Name", "Date of Birth", "Identification","Gender")) {
     c <- ceiling(which(raw == paste0(v,":"))/nrow(raw))
@@ -99,11 +119,9 @@ createMetadata <- function (file) {
 
 #Tämä funktio etsii mittausdatan alkukohdan,
 #sen jälkeen se etsii missä vaiheessa testivaihe alkaa ja lukee sen taulukoksi
-createData <- function (file) {
-  raw <- read.delim(file, header = FALSE, 
-                    fill = TRUE,)
-  data <- read.delim(file, header = TRUE, 
-                     skip = which(raw[1] == "Time"),)
+createData <- function (filels) {
+  raw <- filels$raw
+  data <- filels$data
   test.data <- data[-1:-which(data$t.ph == "Test",),]
   test.data$Load <- as.numeric(test.data$Load)
   test.data <- test.data[1:max(which(test.data$Load == max(test.data$Load))),]

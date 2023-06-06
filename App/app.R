@@ -1,5 +1,5 @@
 library(shiny)
-library(tools)
+library(tools, readxl)
 source("predict script.R")
 
 ui <- fluidPage(
@@ -27,6 +27,10 @@ ui <- fluidPage(
     ),
     fluidRow(
       h4("Calculated values:"),
+      numericInput(inputId = "manualhr",
+                   label="Manual override maxHR",
+                   value="",
+      ),
       tableOutput(outputId = "fitness_pm"),
     ),
     fluidRow(
@@ -43,7 +47,8 @@ ui <- fluidPage(
       p(strong("VO2submax:"),"Oxygen uptake at 60 % of max load (L min^-1).\n"),
       p(strong("RERsubmax:"),"Respiratory exhange ratio at 60 % of max load.\n"),
       p(strong("GEsubmax:"),"Gross efficiency at 60 % of max load (%).\n"),
-      div("Copyright Jukka Hintikka, University of Jyväskylä. CC BY 4.0. Contact juenhint@jyu.fi", style="color: grey; font-size: 10pt")
+      div("Copyright Jukka Hintikka, University of Jyväskylä. MIT License. Contact juenhint@jyu.fi", style="color: grey; font-size: 10pt"),
+      div("v1.2", style="color: grey; font-size: 10pt")
     )
   )
 )
