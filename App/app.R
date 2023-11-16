@@ -27,10 +27,14 @@ ui <- fluidPage(
     ),
     fluidRow(
       h4("Calculated values:"),
-      numericInput(inputId = "manualhr",
+      column(width=4,numericInput(inputId = "manualhr",
                    label="Manual override maxHR",
                    value="",
-      ),
+      )),
+      column(width=4,numericInput(inputId = "manualweight",
+                          label="Manual override weight",
+                          value="",
+      )),
       tableOutput(outputId = "fitness_pm"),
     ),
     fluidRow(
@@ -94,3 +98,4 @@ server <- function(input, output) {
 }
 
 shinyApp(ui = ui, server = server)
+

@@ -10,6 +10,9 @@ runScript <- function(input)  {
     metadata$maxHR <- input$manualhr 
   }
   else  {metadata$maxHR <- NULL}
+  if (!is.na(input$manualweight)) {
+    metadata$Weight <- input$manualweight 
+  }
   # Luodaan lineaarinen regression R:n lm-luokkaa käyttäen ja plotataan tulokset
   linmod <- lm(Load ~ HR, data=test.data.reduced)
   summ <- summary(linmod)
@@ -25,6 +28,7 @@ runScript <- function(input)  {
 }
 
 runExample <- function(file = "example.txt") {
+  file <- getfile(list(filinp=list(datapath=file),sep="\t",quote=""))
   metadata <- createMetadata(file)
   test.data <- createData(file)
   test.data.reduced <- reduceData(test.data)
@@ -111,7 +115,7 @@ createMetadata <- function (filels) {
   for (v in c("Age","Height","Weight","BMI")) {
     c <- ceiling(which(raw == paste0(v,":"))/nrow(raw))
     r <- which(raw == paste0(v,":")) %% nrow(raw)
-    metadata[v] <- as.numeric(strsplit(raw[r,c+1], " ")[[1]][1])
+    metadata[v] <- as.numeric(strsplit(raw[r,c+1], " ",useBytes = TRUE)[[1]][1])
     rm(r,c)
   }
   return(metadata)
